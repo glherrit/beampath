@@ -17,7 +17,6 @@
 		fixed top-[90px] left-[10px] z-[1000]
 		flex w-[250px] flex-col
 		rounded-md border border-gray-400
-		bg-white/70 p-2
 		backdrop-blur-sm
 		{srcOpen ? 'h-[450px]' : 'h-[75px]'}
 	"
