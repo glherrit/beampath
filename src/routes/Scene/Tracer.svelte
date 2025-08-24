@@ -111,7 +111,8 @@
 	let scaleY = (gridHeight * vertScale) / maxY; // scale about center of plot 0 in Y axis
 	maxY = calcZend(gpin) * 0.5;
 	scaleY = gridHeight / maxY;
-	upDateCanvas();
+
+	upDateCanvas(gpin);
 
 	const yLabels: number[] = [];
 	for (let i = -gridHeight; i <= gridHeight; i += gridHeight / horizDivs) {
@@ -156,7 +157,7 @@
 				const point = e['pointOnLine' as keyof MouseEvent] as unknown as Vector3;
 				const trackz = toWorld(point.z, zScale);
 				addLens(gpin, trackz);
-				upDateCanvas();
+				upDateCanvas(gpin);
 			}
 			return;
 		}
@@ -218,13 +219,13 @@
 		// here for deleting lens
 		if (index > -1 && !isAltKeyPressed && isCtrlKeyPressed) {
 			// changeOpModal(e, 'Lens', 'EFL');
-			upDateCanvas();
+			upDateCanvas(gpin);
 		}
 
 		if (index > -1 && isAltKeyPressed && !isCtrlKeyPressed) {
 			// deleteLens(gpin, index);
 			// combineAdjacentDistances(gpin);
-			upDateCanvas();
+			upDateCanvas(gpin);
 		}
 	}
 
@@ -440,25 +441,26 @@
 	// }
 
 	// *****************************************************************
-
+	let isUpdated = $derived(upDateCanvas(gpin));
 	// update canvas scaling factors and other parameters
-	function upDateCanvas() {
-		zend = calcZend(gpin);
+	function upDateCanvas(gp: GaussClass[]): boolean {
+		zend = calcZend(gp);
 		scaleZ = (2 * gridWidth) / (zend - zstart);
 		zScale = zScale = [
-			[zstart, calcZend(gpin)],
+			[zstart, calcZend(gp)],
 			[-gridWidth, gridWidth]
 		];
-		const tempY = Math.max(...findWaistSizes(gpin, source));
+		const tempY = Math.max(...findWaistSizes(gp, source));
 		const yLimit = setAxisLimits(0, tempY)[1];
 		//console.log(tempY, yLimit);
 		maxY = yLimit;
 		scaleY = gridHeight / maxY;
 		maxY = zend * 0.5;
 		scaleY = gridWidth / maxY;
+		return true;
 	}
 
-	let [psegs, nsegs] = genLineSegArray(gpin, source, vertScale, zScale, zinc);
+	let [psegs, nsegs] = $derived(genLineSegArray(gpin, source, vertScale, zScale, zinc));
 	// console.log('🚀 ~ vertScale:', vertScale);
 	// console.log('🚀 ~ zinc:', zinc);
 	// console.log('🚀 ~ zScale:', zScale);
@@ -481,12 +483,8 @@
 	let zWaistGridUnits = toGrid(0, zScale);
 
 	// generate lens for plot
-	let [radius, lensPosi, gop, lensIndex, eflLabelPosi, geos] = generateLensData(
-		gpin,
-		source,
-		scaleZ,
-		scaleY,
-		zScale
+	let [radius, lensPosi, gop, lensIndex, eflLabelPosi, geos] = $derived(
+		generateLensData(gpin, source, scaleZ, scaleY, zScale)
 	);
 
 	let bgcolor = true;
@@ -507,7 +505,7 @@
 			gpDragIndex = getMeshIndex(e, 'Lens');
 			dragcolor = gpin[gpDragIndex].color;
 			gpin[gpDragIndex].color = 'lightblue';
-			upDateCanvas();
+			upDateCanvas(gpin);
 			dragInitialPosition = 0;
 			for (let i = 0; i < gpDragIndex - 1; i++) {
 				if (gpin[i].type === 'distance') {
@@ -520,7 +518,7 @@
 			gpin[gpDragIndex].color = dragcolor;
 			gpDragIndex = -1;
 			dragInitialPosition = 0;
-			upDateCanvas();
+			upDateCanvas(gpin);
 		}
 	}
 
@@ -531,7 +529,7 @@
 		if (gpDragIndex >= 0 && gpDragIndex < gpin.length) {
 			const moveto = zloc - dragInitialPosition;
 			gpin[gpDragIndex - 1].value = moveto >= 0 ? moveto : 0;
-			upDateCanvas();
+			upDateCanvas(gpin);
 		}
 	}
 
@@ -553,7 +551,7 @@
 				gpin[gpDistIndex].value -= 5;
 			}
 		}
-		upDateCanvas();
+		upDateCanvas(gpin);
 	}
 
 	let { camera, scene, renderer } = useThrelte();
@@ -576,32 +574,30 @@
 
 <!-- <svelte:window on:keydown={onKeyDown} /> -->
 
-<!-- Add Camera and `Light`s-->
-<!-- <T.OrthographicCamera makeDefault position={cameraPosition} fov={75} zoom={cameraZoom}>
-	<OrbitControls let:ref enableZoom enableDamping dampingFactor={0.075} target={targetPosition} />
-</T.OrthographicCamera> -->
-
-<!-- Add Lights -->
-<!-- <T.DirectionalLight position={[-100, 0, 0]} intensity={0.75} />
-<T.DirectionalLight position={[0, 100, 0]} intensity={0.2} />
-<T.DirectionalLight position={[0, -100, 0]} intensity={0.2} />
-<T.AmbientLight intensity={0.5} /> -->
-
 <T.OrthographicCamera makeDefault position={cameraPosition} fov={75} zoom={cameraZoom}>
 	<OrbitControls let:ref enableZoom enableDamping dampingFactor={0.075} target={targetPosition} />
 </T.OrthographicCamera>
-<T.DirectionalLight position={[0, 200, 200]} castShadow />
+<!-- <T.DirectionalLight position={[0, 200, 200]} castShadow /> -->
 <T.AmbientLight intensity={1} />
 
-<T.Mesh castShadow>
-	<T.BoxGeometry args={[5, 5, 25]} />
-	<T.MeshStandardMaterial color="yellow" />
-</T.Mesh>
+<!-- Center Test Pieces -->
+<T.Group>
+	<!-- Center Crosss Section  -->
+	<T.Mesh>
+		<T.BoxGeometry args={[1, 1, 15]} />
+		<T.MeshStandardMaterial />
+	</T.Mesh>
 
-<!-- Test text for location -->
-<T.Mesh position={[0, 20, 0]} rotation.y={-Math.PI / 2}>
-	<Text text={'Hello'} color={'black'} fontSize={15} anchorX={'center'} anchorY={'bottom'} />
-</T.Mesh>
+	<T.Mesh>
+		<T.BoxGeometry args={[1, 15, 1]} />
+		<T.MeshStandardMaterial />
+	</T.Mesh>
+
+	<!-- Test text for location -->
+	<T.Mesh position={[0, 20, 0]} rotation.y={-Math.PI / 2}>
+		<Text text={'Center Cross Section'} fontSize={15} anchorX={'center'} anchorY={'bottom'} />
+	</T.Mesh>
+</T.Group>
 
 <!-- plus & negative waist profile lines -->
 {#if showSegLines}
@@ -671,7 +667,11 @@
 			{#if gpin[lensMap[index]].tag}
 				<T.Mesh position={eflLabelPosi[index]} rotation.y={-Math.PI / 2}>
 					<Text
-						text={'f=' + gop[index].value.toFixed(0) + ' mm'}
+						text={'f=' +
+							gop[index].value.toFixed(0) +
+							' mm, ap=' +
+							radius[index].toFixed(1) +
+							' mm'}
 						color={gridTextColor}
 						fontSize={10}
 						anchorX={'center'}
@@ -690,6 +690,30 @@
 		</T.Group>
 	{/each}
 {/if}
+
+<!-- background plane - in this case along Y-Z aaxis -->
+<T.Mesh
+	position={[100 + offsetbackground, 0, 0]}
+	rotation={[0, 0, 0]}
+	visible={true}
+	on:wheel={(e) => canvasWheel(e)}
+	on:pointermove={(e) => canvasMove(e)}
+>
+	<T.BoxGeometry args={[1, 2 * gridHeight + 50, 2 * gridWidth + 100]} />
+	<T.MeshStandardMaterial side={DoubleSide} color={'goldenrod'} transparent opacity={0.05} />
+</T.Mesh>
+
+<!-- add background grid lines -->
+<T.Mesh position={[100, 0, 0]} visible={true}>
+	{#each gridLines as line}
+		<T is={Line2} geometry={genLineSegment(line)} material={new LineMaterial({ linewidth: 0.5 })} />
+	{/each}
+	<T
+		is={Line2}
+		geometry={genLineSegment(gridLines[0])}
+		material={new LineMaterial({ linewidth: 0.5 })}
+	/>
+</T.Mesh>
 
 <!-- Help Button -->
 <T.Group position={[0, gridHeight, gridWidth + 30]}>
@@ -710,7 +734,7 @@
 
 <!-- Title -->
 <T.Mesh position={[100, gridHeight + 25, -gridWidth - 50]} rotation.y={-Math.PI / 2} visible={true}>
-	<Text text={titletext} color={'black'} fontSize={12} anchorX={'left'} anchorY={'bottom'} />
+	<Text text={titletext} color={'red'} fontSize={12} anchorX={'left'} anchorY={'bottom'} />
 </T.Mesh>
 
 <!-- Image Plane Button -->

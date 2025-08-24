@@ -6,6 +6,11 @@
 	import { GaussClass } from '$lib/classes/GaussClass.svelte';
 	import Tracer from './Scene/Tracer.svelte';
 	import Collapsible from '$lib/components/ui/collapsible/collapsible.svelte';
+	import SunIcon from '@lucide/svelte/icons/sun';
+	import MoonIcon from '@lucide/svelte/icons/moon';
+
+	import { toggleMode } from 'mode-watcher';
+	import { Button } from '$lib/components/ui/button/index.js';
 
 	// Source Proto:  wl, w0, waistInitialPosition, msq, ior
 	let source = $state(new SourceClass(10.6, 20, 0, 1, 1)); // λ, w0, waistInitialPosition, ior, msq
@@ -30,8 +35,21 @@
 	let canvasOpen = true;
 </script>
 
-<div class="mt-5 ml-15 flex">
-	<h1 class="text-3xl font-bold">Laser Tracer</h1>
+<div class="mt-5 flex flex-row items-center justify-between">
+	<div class="ml-40">
+		<h1 class="text-3xl font-bold">Laser Tracer</h1>
+	</div>
+	<div class="mr-40">
+		<Button onclick={toggleMode} variant="outline" size="icon">
+			<SunIcon
+				class="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 !transition-all dark:scale-0 dark:-rotate-90"
+			/>
+			<MoonIcon
+				class="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 !transition-all dark:scale-100 dark:rotate-0"
+			/>
+			<span class="sr-only">Toggle theme</span>
+		</Button>
+	</div>
 </div>
 
 {#if canvasOpen}

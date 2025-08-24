@@ -47,6 +47,7 @@
 		"@threlte/core": "^8.1.4",
 		"@threlte/extras": "^9.4.5",
 		"@types/three": "^0.179.0",
+		"mode-watcher": "^1.1.0",
 		"three": "^0.179.1"
 	}
 }
