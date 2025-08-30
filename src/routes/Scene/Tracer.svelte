@@ -57,11 +57,12 @@
 		source,
 		gpin,
 		vertScale,
-		popItOpen = $bindable<boolean>()
+		popItOpen
 	}: {
 		source: SourceClass;
 		gpin: GaussClass[];
 		vertScale: number;
+		popItOpen: boolean;
 	} = $props();
 
 	// let { source = <SourceClass>(), vertScale = $bindable<number>() } = $props();
