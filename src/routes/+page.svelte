@@ -3,6 +3,7 @@
 	import MainScene from './Scene/MainScene.svelte';
 	import { SourceClass } from '$lib/classes/SourceClass.svelte';
 	import SourcePanel from './SourcePanel.svelte';
+	import PopIt from './PopIt.svelte';
 	import { GaussClass } from '$lib/classes/GaussClass.svelte';
 	import Tracer from './Scene/Tracer.svelte';
 	import Collapsible from '$lib/components/ui/collapsible/collapsible.svelte';
@@ -11,11 +12,14 @@
 
 	import { toggleMode } from 'mode-watcher';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { ClampToEdgeWrapping } from 'three';
 
 	// Source Proto:  wl, w0, waistInitialPosition, msq, ior
 	let source = $state(new SourceClass(10.6, 20, 0, 1, 1)); // λ, w0, waistInitialPosition, ior, msq
 	// console.log('🚀 ~ source:', source.toString());
 	let vertScale = $state(1);
+
+	let popItOpen = $state(false);
 
 	const sf = 1; //scale factor
 	let gpin: GaussClass[] = $state([]);
@@ -55,12 +59,13 @@
 {#if canvasOpen}
 	<div class="canvas-wrapper mt-5 ml-40">
 		<Canvas>
-			<Tracer {source} {gpin} {vertScale} />
+			<Tracer {source} {gpin} {vertScale} {popItOpen} />
 		</Canvas>
 	</div>
 {/if}
 
 <SourcePanel bind:source bind:vertScale />
+<PopIt bind:popItOpen />
 
 <style>
 	.canvas-wrapper {

@@ -42,6 +42,11 @@
 	// import ModifyOpModal from '$components/threlte/gausstracer/ModifyOpModal.svelte';
 	// import GaussGraphModal from '$components/threlte/gausstracer/GaussGraphModal.svelte';
 
+	import { buttonVariants } from '$lib/components/ui/button/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
+
 	// let {
 	// 	source = $bindable<SourceClass>(),
 	// 	gpin = $bindable<GaussClass[]>(),
@@ -51,20 +56,15 @@
 	let {
 		source,
 		gpin,
-		vertScale
+		vertScale,
+		popItOpen = $bindable<boolean>()
 	}: {
 		source: SourceClass;
 		gpin: GaussClass[];
 		vertScale: number;
 	} = $props();
 
-	// 	let {
-	// 	source,
-	// 	vertScale
-	// }: {
-	// 	source: SourceClass;
-	// 	vertScale: number;
-	// } = $props();
+	// let { source = <SourceClass>(), vertScale = $bindable<number>() } = $props();
 
 	console.log('🚀 ~ vertScale:', vertScale);
 	// console.log('🚀 ~ source:', source.toString());
@@ -192,6 +192,10 @@
 	// *****************************************************************
 
 	function onClickLens(e: MouseEvent) {
+		popItOpen = true;
+		console.log('single click lens');
+		console.log('popItOpen', popItOpen);
+
 		const isCtrlKeyPressed = getExtraKeyInfo(e, 'ctrlKey');
 		const isAltKeyPressed = getExtraKeyInfo(e, 'altKey');
 		const index = getMeshIndex(e, 'Lens');
@@ -216,15 +220,21 @@
 				gpin[index].color = 'white';
 			}
 		}
-		// here for deleting lens
+		// here for deleting lens - Crtl Click Lens
 		if (index > -1 && !isAltKeyPressed && isCtrlKeyPressed) {
 			// changeOpModal(e, 'Lens', 'EFL');
+
 			upDateCanvas(gpin);
 		}
 
+		// here for deleting lens - Alt Click Lens
 		if (index > -1 && isAltKeyPressed && !isCtrlKeyPressed) {
 			// deleteLens(gpin, index);
 			// combineAdjacentDistances(gpin);
+			console.log('🟢🟢🟢🟢🟢🟢🟢🟢');
+			console.log('Alt Click Lens - usual this deletes the lens');
+			console.log('index:', index);
+			console.log('gpin[index]:', gpin[index].toString());
 			upDateCanvas(gpin);
 		}
 	}
@@ -243,6 +253,7 @@
 
 	// *****************************************************************
 
+	/*
 	// function onKeyDown(e: KeyboardEvent) {
 	// 	if ($modalStore[0]) return;
 	// 	console.log('ekey=', e.key);
@@ -439,6 +450,7 @@
 	// 	};
 	// 	modalStore.trigger(modal);
 	// }
+*/
 
 	// *****************************************************************
 	let isUpdated = $derived(upDateCanvas(gpin));
@@ -568,8 +580,6 @@
 	const gdata = gaussProfile(3.0, 10);
 	const gaussVectorData = gaussVectorProfile(3.0, 10);
 	let cameraZoom: number = $state(1.7);
-
-	// console.log('gridwidth', gridWidth);
 </script>
 
 <!-- <svelte:window on:keydown={onKeyDown} /> -->
@@ -581,7 +591,7 @@
 <T.AmbientLight intensity={1} />
 
 <!-- Center Test Pieces -->
-<T.Group>
+<T.Group visible={false}>
 	<!-- Center Crosss Section  -->
 	<T.Mesh>
 		<T.BoxGeometry args={[1, 1, 15]} />
@@ -734,7 +744,7 @@
 
 <!-- Title -->
 <T.Mesh position={[100, gridHeight + 25, -gridWidth - 50]} rotation.y={-Math.PI / 2} visible={true}>
-	<Text text={titletext} color={'red'} fontSize={12} anchorX={'left'} anchorY={'bottom'} />
+	<Text text={titletext} color={'orange'} fontSize={12} anchorX={'left'} anchorY={'bottom'} />
 </T.Mesh>
 
 <!-- Image Plane Button -->
@@ -756,3 +766,25 @@
 		/>
 	</T.Mesh>
 </T.Group>
+
+<Popover.Root>
+	<Popover.Trigger class={buttonVariants({ variant: 'outline' })}>Open</Popover.Trigger>
+	<Popover.Content class="w-80">
+		<div class="grid gap-4">
+			<div class="space-y-2">
+				<h4 class="leading-none font-medium">Dimensions</h4>
+				<p class="text-sm text-muted-foreground">Set the dimensions.</p>
+			</div>
+			<div class="grid gap-2">
+				<div class="grid grid-cols-3 items-center gap-4">
+					<Label for="width">Width</Label>
+					<Input id="width" value="100%" class="col-span-2 h-8" />
+				</div>
+				<div class="grid grid-cols-3 items-center gap-4">
+					<Label for="height">Height</Label>
+					<Input id="height" value="25px" class="col-span-2 h-8" />
+				</div>
+			</div>
+		</div>
+	</Popover.Content>
+</Popover.Root>
