@@ -8,11 +8,12 @@
 	import * as Popover from '$lib/components/ui/popover/index.js';
 
 	let { popItOpen = $bindable<boolean>() } = $props();
+	console.log('popItOpen in PopIt', popItOpen);
 </script>
 
 <div
 	class="
-		fixed top-[90px] right-[10px] z-[1000]
+		fixed top-[90px] right-[300px] z-[1000]
 		flex w-[250px] flex-col
 		rounded-md border border-gray-400
 		backdrop-blur-sm
@@ -21,7 +22,7 @@
 >
 	<p class={popItOpen ? 'h-[450px]' : 'h-[75px]'}>PopIt</p>
 	<Popover.Root>
-		<Popover.Trigger class={buttonVariants({ variant: 'outline' })}>Open</Popover.Trigger>
+		<!-- <Popover.Trigger class={buttonVariants({ variant: 'outline' })}>Open</Popover.Trigger> -->
 		<Popover.Content class="w-80">
 			<div class="grid gap-4">
 				<div class="space-y-2">

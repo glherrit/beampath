@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Text, interactivity, OrbitControls } from '@threlte/extras';
+	import { Text, OrbitControls } from '@threlte/extras';
+	import { interactivity } from '@threlte/extras';
 	import { T, useThrelte } from '@threlte/core';
 	import {
 		AmbientLight,
@@ -57,14 +58,19 @@
 		source,
 		gpin,
 		vertScale,
-		popItOpen
+		popItOpen = $bindable<boolean>(),
+		dialogOpen = $bindable<boolean>(),
+		activeObject = $bindable<number>()
 	}: {
 		source: SourceClass;
 		gpin: GaussClass[];
 		vertScale: number;
 		popItOpen: boolean;
+		dialogOpen: boolean;
+		activeObject: number;
 	} = $props();
 
+	interactivity();
 	// let { source = <SourceClass>(), vertScale = $bindable<number>() } = $props();
 
 	console.log('🚀 ~ vertScale:', vertScale);
@@ -80,8 +86,6 @@
 	const showwaists = true;
 	const showSegLines = true;
 	const offsetbackground = 2;
-
-	interactivity();
 
 	// **************************************
 	// set canvas parameters and initial grid values
@@ -131,8 +135,18 @@
 	// *****************************************************************
 
 	function onclickLine(e: MouseEvent) {
+		const index = getMeshIndex(e, 'Line');
 		const isCtrlKeyPressed = getExtraKeyInfo(e, 'ctrlKey');
 		const isAltKeyPressed = getExtraKeyInfo(e, 'altKey');
+		const isValidIndex = index > 0 && index < gpin.length;
+
+		// Standard Click Used for Altering Line Length (Value)
+		if (isValidIndex && !isAltKeyPressed && !isCtrlKeyPressed) {
+			dialogOpen = true;
+			activeObject = index;
+			return;
+		}
+
 		let newIndex = getMeshIndex(e, 'Line');
 		// check for activated lens and deactivate
 		if (gpLensIndex > -1) {
@@ -193,13 +207,16 @@
 	// *****************************************************************
 
 	function onClickLens(e: MouseEvent) {
-		popItOpen = true;
-		console.log('single click lens');
-		console.log('popItOpen', popItOpen);
-
+		const index = getMeshIndex(e, 'Lens');
 		const isCtrlKeyPressed = getExtraKeyInfo(e, 'ctrlKey');
 		const isAltKeyPressed = getExtraKeyInfo(e, 'altKey');
-		const index = getMeshIndex(e, 'Lens');
+		const isValidIndex = index > 0 && index < gpin.length;
+
+		if (isValidIndex && !isAltKeyPressed && !isCtrlKeyPressed) {
+			dialogOpen = true;
+			activeObject = index;
+		}
+
 		// here for activating lens for keyboard changes
 		if (index > -1 && !isAltKeyPressed && !isCtrlKeyPressed) {
 			lineColor = 0x0000ff;
@@ -241,9 +258,9 @@
 	}
 
 	function onLensEnter(e: MouseEvent) {
+		// console.log('lensmap:', lensMap);
 		const index = getMeshIndex(e, 'Lens');
 		gpin[index].tag = true;
-		//console.log('line enter', index, lensMap[index]);
 	}
 
 	function onLensLeave(e: MouseEvent) {
@@ -619,7 +636,7 @@
 				geometry={new LineGeometry().setPositions(psegs[index] as Float32Array)}
 				material={new LineMaterial({
 					color: lineColor,
-					linewidth: gpin[lineMap[index]].tag ? 2 : 2
+					linewidth: gpin[lineMap[index]].tag ? 10 : 4
 				})}
 				name={'Line' + distanceMap[index]}
 				onpointerenter={onLineEnter}
@@ -631,7 +648,7 @@
 				geometry={new LineGeometry().setPositions(nsegs[index] as Float32Array)}
 				material={new LineMaterial({
 					color: lineColor,
-					linewidth: gpin[lineMap[index]].tag ? 2 : 2
+					linewidth: gpin[lineMap[index]].tag ? 10 : 4
 				})}
 				name={'Line' + distanceMap[index]}
 				onpointerenter={onLineEnter}
@@ -675,11 +692,11 @@
 					shininess={100}
 				/>
 			</T.Mesh>
-			{#if gpin[lensMap[index]].tag}
+			{#if gpin[lensMap[index]]?.tag}
 				<T.Mesh position={eflLabelPosi[index]} rotation.y={-Math.PI / 2}>
 					<Text
 						text={'f=' +
-							gop[index].value.toFixed(0) +
+							gop[index].value.toFixed(1) +
 							' mm, ap=' +
 							radius[index].toFixed(1) +
 							' mm'}
@@ -694,7 +711,7 @@
 			<!-- <Lens
 			radius={lenses[0][index]}
 			{scaleY}
-			{scaleZ}
+			{scaleZ}`
 			position={[lenses[1][index][0], lenses[1][index][1], lenses[1][index][2]]}
 			gop={lenses[2][index]}
 		/> -->
@@ -707,8 +724,8 @@
 	position={[100 + offsetbackground, 0, 0]}
 	rotation={[0, 0, 0]}
 	visible={true}
-	on:wheel={(e) => canvasWheel(e)}
-	on:pointermove={(e) => canvasMove(e)}
+	onwheel={(e: WheelEvent) => canvasWheel(e)}
+	onpointermove={(e: WheelEvent) => canvasMove(e)}
 >
 	<T.BoxGeometry args={[1, 2 * gridHeight + 50, 2 * gridWidth + 100]} />
 	<T.MeshStandardMaterial side={DoubleSide} color={'goldenrod'} transparent opacity={0.05} />
