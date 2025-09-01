@@ -490,12 +490,7 @@
 		return true;
 	}
 
-	let [psegs, nsegs] = $derived(genLineSegArray(gpin, source, vertScale, zScale, zinc));
-	// console.log('🚀 ~ vertScale:', vertScale);
-	// console.log('🚀 ~ zinc:', zinc);
-	// console.log('🚀 ~ zScale:', zScale);
-
-	// console.log(nsegs[0]);
+	let [psegs, zsegs, nsegs] = $derived(genLineSegArray(gpin, source, vertScale, zScale, zinc));
 
 	let distanceMap = genTypeMap(gpin, 'distance');
 	let lensMap = genTypeMap(gpin, 'lens');
@@ -655,9 +650,21 @@
 				onpointerleave={onLineLeave}
 				onclick={onclickLine}
 			/>
+			<T
+				is={Line2}
+				geometry={new LineGeometry().setPositions(zsegs[index] as Float32Array)}
+				material={new LineMaterial({
+					color: lineColor,
+					linewidth: 1
+				})}
+				name={'Line' + distanceMap[index]}
+				onpointerenter={onLineEnter}
+				onpointerleave={onLineLeave}
+				onclick={onclickLine}
+			/>
 		</T.Mesh>
 		{#if gpin[distanceMap[index]].tag}
-			<T.Mesh position={centerLine(psegs[index], 5)} rotation.y={-Math.PI / 2}>
+			<T.Mesh position={centerLine(zsegs[index], 0)} rotation.y={-Math.PI / 2}>
 				<Text
 					text={'d=' + gpin[distanceMap[index]].value.toFixed(0)}
 					color={gridTextColor}
