@@ -60,7 +60,8 @@
 		vertScale,
 		popItOpen = $bindable<boolean>(),
 		dialogOpen = $bindable<boolean>(),
-		activeObject = $bindable<number>()
+		activeObject = $bindable<number>(),
+		openHelpDialog = $bindable<boolean>()
 	}: {
 		source: SourceClass;
 		gpin: GaussClass[];
@@ -68,6 +69,7 @@
 		popItOpen: boolean;
 		dialogOpen: boolean;
 		activeObject: number;
+		openHelpDialog: boolean;
 	} = $props();
 
 	interactivity();
@@ -138,7 +140,7 @@
 		const index = getMeshIndex(e, 'Line');
 		const isCtrlKeyPressed = getExtraKeyInfo(e, 'ctrlKey');
 		const isAltKeyPressed = getExtraKeyInfo(e, 'altKey');
-		const isValidIndex = index > 0 && index < gpin.length;
+		const isValidIndex = index > -1 && index < gpin.length;
 
 		// Standard Click Used for Altering Line Length (Value)
 		if (isValidIndex && !isAltKeyPressed && !isCtrlKeyPressed) {
@@ -210,11 +212,12 @@
 		const index = getMeshIndex(e, 'Lens');
 		const isCtrlKeyPressed = getExtraKeyInfo(e, 'ctrlKey');
 		const isAltKeyPressed = getExtraKeyInfo(e, 'altKey');
-		const isValidIndex = index > 0 && index < gpin.length;
+		const isValidIndex = index > -1 && index < gpin.length;
 
 		if (isValidIndex && !isAltKeyPressed && !isCtrlKeyPressed) {
 			dialogOpen = true;
 			activeObject = index;
+			return;
 		}
 
 		// here for activating lens for keyboard changes
@@ -411,19 +414,7 @@
 	// 	modalStore.trigger(modal);
 	// }
 
-	// function showHelp() {
-	// 	const c: ModalComponent = { ref: HelpModal };
-	// 	const modal: ModalSettings = {
-	// 		type: 'component',
-	// 		component: c,
-	// 		title: 'Help - Keys & Functions',
-	// 		body: 'Help - keys and functions',
-	// 		response: (r: any) => {
-	// 			console.log('help responded');
-	// 		}
-	// 	};
-	// 	modalStore.trigger(modal);
-	// }
+
 
 	// function showGaussGraph() {
 	// 	const c: ModalComponent = { ref: GaussGraphModal };
@@ -579,6 +570,11 @@
 		upDateCanvas(gpin);
 	}
 
+	function showHelp(e: MouseEvent) {
+		console.log('fire show help event', e);
+		openHelpDialog = true;
+	}
+
 	let { camera, scene, renderer } = useThrelte();
 	function resetControls() {
 		//camTarget = new Vector3(0, 0, 0);
@@ -664,7 +660,7 @@
 			/>
 		</T.Mesh>
 		{#if gpin[distanceMap[index]].tag}
-			<T.Mesh position={centerLine(zsegs[index], 0)} rotation.y={-Math.PI / 2}>
+			<T.Mesh position={centerLine(psegs[index], 5)} rotation.y={-Math.PI / 2}>
 				<Text
 					text={'d=' + gpin[distanceMap[index]].value.toFixed(0)}
 					color={gridTextColor}
@@ -751,17 +747,18 @@
 </T.Mesh>
 
 <!-- Help Button -->
-<T.Group position={[0, gridHeight, gridWidth + 30]}>
-	<T.Mesh rotation.z={Math.PI / 2} visible={true}>
-		<T.CylinderGeometry args={[8, 8, 5, 32]} />
-		<T.MeshStandardMaterial color={'red'} />
+<!-- <T.Group position={[0, gridHeight, gridWidth + 30]} onclick={showHelp}> -->
+<T.Group position={[0, gridHeight, -gridWidth + 30]}>
+	<T.Mesh rotation.z={Math.PI / 2} visible={true} onclick={showHelp}>
+		<T.CylinderGeometry args={[12, 12, 5, 32]} />
+		<T.MeshStandardMaterial color={'yellow'} />
 	</T.Mesh>
 	<Text
 		position={[-2.6, 0, 0]}
 		rotation.y={-Math.PI / 2}
 		text={'?'}
 		color={'black'}
-		fontSize={8}
+		fontSize={10}
 		anchorX={'center'}
 		anchorY={'middle'}
 	/>
@@ -791,25 +788,3 @@
 		/>
 	</T.Mesh>
 </T.Group>
-
-<Popover.Root>
-	<Popover.Trigger class={buttonVariants({ variant: 'outline' })}>Open</Popover.Trigger>
-	<Popover.Content class="w-80">
-		<div class="grid gap-4">
-			<div class="space-y-2">
-				<h4 class="leading-none font-medium">Dimensions</h4>
-				<p class="text-sm text-muted-foreground">Set the dimensions.</p>
-			</div>
-			<div class="grid gap-2">
-				<div class="grid grid-cols-3 items-center gap-4">
-					<Label for="width">Width</Label>
-					<Input id="width" value="100%" class="col-span-2 h-8" />
-				</div>
-				<div class="grid grid-cols-3 items-center gap-4">
-					<Label for="height">Height</Label>
-					<Input id="height" value="25px" class="col-span-2 h-8" />
-				</div>
-			</div>
-		</div>
-	</Popover.Content>
-</Popover.Root>

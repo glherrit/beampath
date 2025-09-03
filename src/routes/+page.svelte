@@ -4,7 +4,7 @@
 	import { SourceClass } from '$lib/classes/SourceClass.svelte';
 	import SourcePanel from './SourcePanel.svelte';
 	import PopIt from './PopIt.svelte';
-	import GenericDialog from './GenericDialog.svelte';
+	import GenericDialog from './Dialogs/GenericDialog.svelte';
 	import { GaussClass } from '$lib/classes/GaussClass.svelte';
 	import Tracer from './Scene/Tracer.svelte';
 	import Collapsible from '$lib/components/ui/collapsible/collapsible.svelte';
@@ -17,6 +17,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import HelpDialog from './Dialogs/HelpDialog.svelte';
 
 	// Source Proto:  wl, w0, waistInitialPosition, msq, ior
 	let source = $state(new SourceClass(10.6, 20, 0, 1, 1)); // λ, w0, waistInitialPosition, ior, msq
@@ -25,6 +26,7 @@
 	let popItOpen = $state(false);
 	let dialogOpen = $state(false);
 	let activeObject = $state(-1);
+	let openHelpDialog = $state(false);
 	const sf = 1; //scale factor
 
 	let gpin: GaussClass[] = [];
@@ -62,11 +64,20 @@
 </div>
 
 <GenericDialog {gpin} bind:dialogOpen bind:activeObject />
+<HelpDialog bind:openHelpDialog />
 
 {#if canvasOpen}
 	<div class="canvas-wrapper mt-5 ml-40">
 		<Canvas>
-			<Tracer {source} {gpin} {vertScale} bind:popItOpen bind:dialogOpen bind:activeObject />
+			<Tracer
+				{source}
+				{gpin}
+				{vertScale}
+				bind:popItOpen
+				bind:dialogOpen
+				bind:activeObject
+				bind:openHelpDialog
+			/>
 		</Canvas>
 	</div>
 {/if}
